@@ -17,7 +17,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://cms-portfolio-frontend.vercel.app/", // replace with real Vercel URL
+      "https://cms-portfolio-frontend.vercel.app", // replace with real Vercel URL
     ],
     credentials: true,
   })
