@@ -3,37 +3,39 @@ const cors = require("cors");
 const path = require("path");
 const connectDB = require("./config/db");
 
-// 🔹 Load .env reliably (Windows/OneDrive safe)
-require("dotenv").config({ path: path.resolve(__dirname, ".env") });
-
-// 🔹 Debug: check if MONGO_URI is loaded
-console.log("ENV KEYS:", Object.keys(process.env));
-console.log("MONGO_URI VALUE:", process.env.MONGO_URI);
-
-if (!process.env.MONGO_URI) {
-  console.error("❌ MONGO_URI is missing in your .env file!");
-  process.exit(1); // stop server if URI missing
+// ✅ Load env ONLY in local development
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
 }
-
-// 🔹 Connect to MongoDB
-connectDB();
 
 const app = express();
 
-// 🔹 Middleware
+// ✅ Middleware
+app.use(express.json());
+
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://your-frontend.vercel.app", // ADD LATER
+      "https://cms-portfolio-frontend.vercel.app/", // replace with real Vercel URL
     ],
     credentials: true,
   })
 );
-app.use(express.json());
 
+// ✅ Static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-// 🔹 Routes
+
+// ✅ Health check routes (REQUIRED for Render debugging)
+app.get("/", (req, res) => {
+  res.send("Backend running");
+});
+
+app.get("/api", (req, res) => {
+  res.json({ message: "API working" });
+});
+
+// ✅ API Routes
 app.use("/api/intro", require("./routes/introRoutes"));
 app.use("/api/projects", require("./routes/projectRoutes"));
 app.use("/api/experience", require("./routes/experienceRoutes"));
@@ -43,6 +45,11 @@ app.use("/api/skills", require("./routes/skillRoutes"));
 app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/auth", require("./routes/authRoutes"));
 
-// 🔹 Start server
+// ✅ Connect DB (do NOT crash server if it fails)
+connectDB();
+
+// ✅ Start server (Render assigns PORT)
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
